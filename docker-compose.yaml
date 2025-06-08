@@ -1,0 +1,35 @@
+services: 
+      authentication:
+        image: authentication-image
+        container_name: authentication-container
+        build: .
+        ports: 
+            - 8000:8000
+        depends_on:
+            db:
+              condition: 
+                    service_healthy
+        networks:
+           - app-network
+
+      db:
+        image: postgres
+        restart: always
+        environment:
+             POSTGRES_PASSWORD: root
+             POSTGRES_USER: postgres
+             POSTGRES_DB: auth_database
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            interval: 1s
+            timeout: 5s
+            retries: 10
+        volumes:
+          - ./pgdata:/var/lib/postgresql/data
+        networks:
+            - app-network
+
+
+networks:
+     app-network:
+        driver: bridge

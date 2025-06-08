@@ -1,6 +1,8 @@
 django
 djangorestframework
 docker
-psycopg2
 markdown
 django-filter
+Pillow
+django-rest-knox
+psycopg2-binary
