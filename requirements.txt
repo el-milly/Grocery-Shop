@@ -6,3 +6,6 @@ django-filter
 Pillow
 django-rest-knox
 psycopg2-binary
+python-dotenv
+pymemcache
+django-cors-headers

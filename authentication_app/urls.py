@@ -1,4 +1,3 @@
-from os import name
 from django.urls import path
 from .views import UserViewApi, UserLoginView, CheckView
 from knox import views as knox_views

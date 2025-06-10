@@ -33,7 +33,9 @@ class UserLoginView(APIView):
         if not user:
             return Response({'error': 'Invalid credentials'})
         
-        token = AuthToken.objects.get_or_create(user)[1]
+        AuthToken.objects.filter(user=user).delete()
+        
+        token = AuthToken.objects.create(user=user)[1]
         
         return Response({"user_data": UserSerializer(user).data, "token": token})
     
