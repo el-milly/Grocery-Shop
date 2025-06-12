@@ -1,0 +1,27 @@
+services:
+  order-service:
+          image: order-image
+          container_name: order-container
+          build: .
+          ports:
+            - "8000:8000"
+          networks:
+                - app-network
+
+
+  web:
+    image: nginx
+    container_name: nginx-container-order
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./static/html:/static/html
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+
+
+networks:
+      app-network:
+            driver: bridge
+  
