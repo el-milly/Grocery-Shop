@@ -48,12 +48,22 @@
         button:hover {
             background: #2ecc71;
         }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .error {
+            color: #e74c3c;
+            margin-top: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
     <h1>Оформление заказа</h1>
     
-    <form class="order-form" action="/submit-order" method="POST">
+    <form class="order-form" id="orderForm">
         <div class="form-group">
             <label for="product">Название продукта*</label>
             <input type="text" id="product" name="product" required placeholder="Например: Молоко 1л">
@@ -65,24 +75,61 @@
         </div>
         
         <div class="form-group">
-            <label for="quantity">Количество</label>
-            <input type="number" id="quantity" name="quantity" value="1" min="1">
+            <label for="count">Количество</label>
+            <input type="number" id="count" name="count" value="1" min="1">
         </div>
         
         <div class="form-group">
-            <label for="notes">Примечания к заказу</label>
-            <textarea id="notes" name="notes" rows="2" placeholder="Особые пожелания"></textarea>
+            <label for="contact_bio">Примечания к заказу</label>
+            <textarea id="contact_bio" name="contact_bio" rows="2" placeholder="Особые пожелания"></textarea>
         </div>
         
-        <button type="submit">Отправить заказ</button>
+        <button type="submit" id="submitBtn">Отправить заказ</button>
+        <div class="loading" id="loading">Отправка данных...</div>
+        <div class="error" id="error"></div>
     </form>
 
-    <!-- Простейшая обработка формы (можно удалить в продакшене) -->
     <script>
-        document.querySelector('form').addEventListener('submit', function(e) {
+        document.getElementById('orderForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            alert('Заказ отправлен! (это демо, форма не отправлена на сервер)');
-            this.reset();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const errorElement = document.getElementById('error');
+            
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+            errorElement.style.display = 'none';
+            
+            try {
+                const formData = {
+                    product: document.getElementById('product').value,
+                    address: document.getElementById('address').value,
+                    quantity: document.getElementById('count').value,
+                    notes: document.getElementById('contact_bio').value
+                };
+                
+                const response = await fetch('/api/order/create_order/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Ошибка сервера: ${response.status}`);
+                }
+                
+                const result = await response.json();                
+            } catch (error) {
+                console.error('Ошибка:', error);
+                errorElement.textContent = `Произошла ошибка: ${error.message}`;
+                errorElement.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }
         });
     </script>
 </body>
