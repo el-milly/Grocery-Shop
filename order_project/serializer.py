@@ -36,7 +36,6 @@ class ProductSerializer(serializers.ModelSerializer):
         
         return product
 class OrderSerializer(serializers.ModelSerializer):
-    product = ProductSerializer()
     class Meta:
         model = OrderModel
         fields = ['contact_bio','address', 'date_of_order', 'count', 'product']
