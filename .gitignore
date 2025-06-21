@@ -1,6 +1,5 @@
 .vscode
 venv
 db.sqlite3
-migrations
 pgdata
 .env
