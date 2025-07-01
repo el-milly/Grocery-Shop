@@ -5,6 +5,9 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         fields = ['name', 'slug']
         model = CategoryModel
+        extra_kwargs = {
+            'slug': {'read_only': True}
+        }
 
     def create(self, validated_data):
         # Check if category with this name already exists
