@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import CartModel
-class CartSerializer(serializers.APIView):
+class CartSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ["id", "user_id", "items", "created_at", "updated_at"]
         model = CartModel
