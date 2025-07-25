@@ -3,8 +3,8 @@ from .serializer import UserProfileSerializer, UserSerializer
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate
 from knox.models import AuthToken
-
-
+from kafka import KafkaProducer
+import json
 # Create your views here.
 
 class UserViewApi(APIView):
@@ -32,6 +32,16 @@ class UserLoginView(APIView):
         user = authenticate(username=username, password=password)
         if not user:
             return Response({'error': 'Invalid credentials'})
+        
+        producer = KafkaProducer(bootstrap_server='broker:9092')
+        producer.send(
+            'user_events',
+            key=str(user.id),
+            value=json.dumps({
+                'user_id': str(user.id)
+            })
+        )
+        producer.flush()
         
         AuthToken.objects.filter(user=user).delete()
         
