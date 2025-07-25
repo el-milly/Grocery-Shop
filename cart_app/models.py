@@ -7,7 +7,7 @@ import json
 
 
 class CartModel(models.Model):
-    user_id = models.IntegerField()
+    user_id = models.IntegerField(unique=True)
     items = models.JSONField(default=list)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
