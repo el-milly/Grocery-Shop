@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from .models import user_profile
 from django.contrib.auth.models import User
+from kafka import KafkaProducer
+import json
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -20,4 +22,19 @@ class UserProfileSerializer(serializers.ModelSerializer):
             password=user_data['password']
         )
         profile = user_profile.objects.create(user=user, **validated_data)
+        
+        producer = KafkaProducer(
+            booststrap_server='broker:9092',
+            value_serializer=lambda v: json.dumps(v).encode('utf-8')
+        )
+        producer.send(
+            'user-events',
+            value={
+                'event_type': 'user_created',
+                'user_id': user.id,
+            }
+        )
+        producer.flush()
+
+
         return profile
