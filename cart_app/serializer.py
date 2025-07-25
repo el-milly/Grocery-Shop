@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import CartModel
 class CartSerializer(serializers.APIView):
     class Meta:
-        fields = ["id", "user_id", "items", "created_at", "updated_at"]
+        fields = ["user_id", "items", "created_at", "updated_at"]
         model = CartModel
     
     def validate_items(self, value):
