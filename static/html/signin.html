@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grocery - Sign In</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            width: 100%;
+        }
+
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Sign In</h2>
+    <form id="login-form">
+        <div class="form-group">
+            <input type="text" id="username" placeholder="Username" required>
+        </div>
+        <div class="form-group">
+            <input type="password" id="password" placeholder="Password" required>
+        </div>
+        <button type="submit">Login</button>
+        <div id="message" class="error"></div>
+    </form>
+
+    <script>
+        // Функция для получения CSRF-токена (необходима для Knox)
+        function getCSRFToken() {
+            return document.cookie.match(/csrftoken=([^;]+)/)?.[1] || "";
+        }
+
+        document.getElementById("login-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const messageEl = document.getElementById("message");
+            messageEl.textContent = "";
+            messageEl.className = "error";
+
+            try {
+                const response = await fetch("http://localhost:8000/api/login/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        username: document.getElementById("username").value,
+                        password: document.getElementById("password").value,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Knox возвращает токен в поле 'token'
+                    const token = data.token;
+                    localStorage.setItem("knox_token", token);
+                    messageEl.textContent = "Login successful! Redirecting...";
+                    messageEl.className = "success";
+
+                } else {
+                    messageEl.textContent = data.error || "Invalid credentials";
+                }
+                if (data.user) {
+                    localStorage.setItem("user_info", JSON.stringify({
+                        username: data.user.username,
+                        email: data.user.email,
+                        id: data.user.id
+                    }));
+                }
+
+            } catch (error) {
+                messageEl.textContent = `Network error: ${error.message}`;
+            }
+        });
+
+        // Проверка авторизации при загрузке страницы
+        if (localStorage.getItem("knox_token")) {
+            document.getElementById("message").textContent = "You are already logged in.";
+        }
+    </script>
+</body>
+
+</html>
