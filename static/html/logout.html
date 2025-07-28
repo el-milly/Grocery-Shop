@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logout Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #cc0000;
+        }
+        #message {
+            margin-top: 20px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Logout Page</h2>
+        <button id="logoutBtn">Logout</button>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            const messageElement = document.getElementById('message');
+            messageElement.textContent = 'Logging out...';
+
+            // Получаем токен из localStorage (обычно его сохраняют после входа)
+            const token = localStorage.getItem('knox_token'); // или sessionStorage
+            
+            if (!token) {
+                messageElement.textContent = 'Error: No token found. Please log in first.';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8000/api/logout/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${token}`  // Knox ожидает "Token <ключ>"
+                    },
+                    // credentials: 'include'  // Если используете куки или сессии
+                });
+
+                if (response.ok) {
+                    messageElement.textContent = 'Logout successful!';
+                    // Удаляем токен из localStorage после выхода
+                    localStorage.removeItem('knox_token');
+                    // Перенаправляем на страницу входа (опционально)
+                    // window.location.href = '/login.html';
+                } else {
+                    const errorData = await response.json();
+                    messageElement.textContent = `Logout failed: ${errorData.detail || 'Unknown error'}`;
+                }
+            } catch (error) {
+                messageElement.textContent = `Error: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
