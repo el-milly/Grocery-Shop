@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,13 +25,15 @@ SECRET_KEY = 'django-insecure-^a4#t&dn-v+ru0e2-%obt9)e#ceohab0y!ojdi7dgnxezumxh!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
-
-CORS_ALLOWED_ORIGINS = [
-    'localhost:8000',
-    'localhost:8080'
+ALLOWED_HOSTS = ['localhost', 'product-container']
+APPEND_SLASH = True
+KAFKA_BROKER = ['broker:9092']
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8080',
+    'http://localhost:8000',
+    'http://product-container:8000',
 ]
-
+CORS_ALLOW_ALL_ORIGINS = True 
 CACHES = {
     'default': {
         'BACKEND':
@@ -51,8 +53,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'product_app',
-    'corsheaders'
+    'corsheaders',
 ]
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -94,7 +97,7 @@ DATABASES = {
         'NAME': 'product_db',
         'PASSWORD': 'root',
         'USER': 'postgres',
-        'HOST': 'product_database',
+        'HOST': 'product-database',
         'PORT': '5432',
     }
 }
@@ -134,8 +137,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
-
+STATIC_URL = '/django_static/'
+STATIC_ROOT = os.path.join(BASE_DIR, '/backend/staticfiles/')
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

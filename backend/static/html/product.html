@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category & Product Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 80px;
+            resize: vertical;
+        }
+        .nutrition-fields {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .nutrition-fields label {
+            display: flex;
+            align-items: center;
+        }
+        .nutrition-fields input {
+            width: calc(100% - 70px);
+            margin-left: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #categoriesList, #productsList {
+            margin-top: 20px;
+        }
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .product-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .product-name {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 8px;
+            color: #2a6496;
+        }
+        .product-price {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #4CAF50;
+        }
+        .product-desc {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        .nutrition-info {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #ddd;
+        }
+        .nutrition-item {
+            text-align: center;
+        }
+        .nutrition-value {
+            font-weight: bold;
+            color: #333;
+        }
+        .nutrition-label {
+            font-size: 0.8em;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <h1>Category & Product Management</h1>
+
+    <!-- CSRF Token -->
+    <input type="hidden" id="csrfToken" value="abc123xyz456">
+
+    <!-- Category Creation Section -->
+    <div class="section">
+        <h2>Create Category</h2>
+        <div id="categoryMessage" class="message" style="display: none;"></div>
+        <label for="categoryName">Category Name:</label>
+        <input type="text" id="categoryName" required>
+        <button id="createCategoryBtn">Create Category</button>
+        
+        <div id="categoriesList">
+            <h3>Existing Categories</h3>
+            <ul id="categories"></ul>
+        </div>
+    </div>
+
+    <!-- Product Creation Section -->
+    <div class="section">
+        <h2>Create Product</h2>
+        <div id="productMessage" class="message" style="display: none;"></div>
+        <label for="productCategory">Category:</label>
+        <select id="productCategory" required>
+            <option value="">-- Select a Category --</option>
+        </select>
+        <label for="productName">Product Name:</label>
+        <input type="text" id="productName" required>
+        <label for="productPrice">Price ($):</label>
+        <input type="number" id="productPrice" min="0" step="0.01" required>
+        <label for="productDescription">Description:</label>
+        <textarea id="productDescription"></textarea>
+        
+        <h3>Nutritional Information (per 100g)</h3>
+        <div class="nutrition-fields">
+            <label>
+                Calories (kcal):
+                <input type="number" id="productKcal" min="0" step="1">
+            </label>
+            <label>
+                Protein (g):
+                <input type="number" id="productProtein" min="0" step="0.1">
+            </label>
+            <label>
+                Fats (g):
+                <input type="number" id="productFats" min="0" step="0.1">
+            </label>
+            <label>
+                Carbs (g):
+                <input type="number" id="productCarbs" min="0" step="0.1">
+            </label>
+        </div>
+        
+        <button id="createProductBtn">Create Product</button>
+        
+        <div id="productsList">
+            <h3>Existing Products</h3>
+            <div id="products"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let categories = [];
+        let products = [];
+
+        // DOM elements
+        const categoryNameInput = document.getElementById('categoryName');
+        const createCategoryBtn = document.getElementById('createCategoryBtn');
+        const categoriesList = document.getElementById('categories');
+        const categoryMessage = document.getElementById('categoryMessage');
+        
+        const productCategorySelect = document.getElementById('productCategory');
+        const productNameInput = document.getElementById('productName');
+        const productPriceInput = document.getElementById('productPrice');
+        const productDescriptionInput = document.getElementById('productDescription');
+        const productKcalInput = document.getElementById('productKcal');
+        const productProteinInput = document.getElementById('productProtein');
+        const productFatsInput = document.getElementById('productFats');
+        const productCarbsInput = document.getElementById('productCarbs');
+        const createProductBtn = document.getElementById('createProductBtn');
+        const productsList = document.getElementById('products');
+        const productMessage = document.getElementById('productMessage');
+        const csrfToken = document.getElementById('csrfToken').value;
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchCategories();
+            createCategoryBtn.addEventListener('click', createCategory);
+            createProductBtn.addEventListener('click', createProduct);
+        });
+
+        // Fetch categories from server
+        async function fetchCategories() {
+            try {
+                const response = await fetch('/product/categories/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to fetch categories');
+                }
+
+                const data = await response.json();
+                categories = data.detail || [];
+                
+                updateCategoryDropdown();
+                renderCategories();
+                
+            } catch (error) {
+                showMessage(categoryMessage, `Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Create new category
+        async function createCategory() {
+            const name = categoryNameInput.value.trim();
+            
+            if (!name) {
+                showMessage(categoryMessage, 'Category name is required', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/product/create_category/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken
+                    },
+                    body: JSON.stringify({ name })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to create category');
+                }
+
+                await fetchCategories(); // Refresh list
+                categoryNameInput.value = '';
+                showMessage(categoryMessage, 'Category created!', 'success');
+                
+            } catch (error) {
+                showMessage(categoryMessage, error.message, 'error');
+            }
+        }
+
+        // Create new product
+        async function createProduct() {
+            const categoryId = productCategorySelect.value;
+            const name = productNameInput.value.trim();
+            const price = parseFloat(productPriceInput.value);
+            const description = productDescriptionInput.value.trim();
+            const kcal = parseFloat(productKcalInput.value) || 0;
+            const protein = parseFloat(productProteinInput.value) || 0;
+            const fats = parseFloat(productFatsInput.value) || 0;
+            const carbs = parseFloat(productCarbsInput.value) || 0;
+            
+            if (!categoryId) {
+                showMessage(productMessage, 'Please select a category', 'error');
+                return;
+            }
+            
+            if (!name) {
+                showMessage(productMessage, 'Product name is required', 'error');
+                return;
+            }
+            
+            if (isNaN(price) || price < 0) {
+                showMessage(productMessage, 'Please enter a valid price', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/product/create_product/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken
+                    },
+                    body: JSON.stringify({
+                        name,
+                        category: categoryId,
+                        price: price,
+                        description: description,
+                        kcal: kcal,      
+                        protein: protein, 
+                        fats: fats,       
+                        carbs: carbs     
+                    })
+
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to create product');
+                }
+
+                const newProduct = await response.json();
+                // Ensure numeric fields are numbers
+                newProduct.price = typeof newProduct.price === 'string' ? 
+                    parseFloat(newProduct.price) : 
+                    newProduct.price;
+                
+                // Ensure nutrition fields exist and are numbers
+                if (!newProduct) newProduct = {};
+                newProduct.kcal = typeof newProduct.kcal === 'string' ? 
+                    parseFloat(newProduct.kcal) : 
+                    (newProduct.kcal || 0);
+                newProduct.protein = typeof newProduct.protein === 'string' ? 
+                    parseFloat(newProduct.protein) : 
+                    (newProduct.protein || 0);
+                newProduct.fats = typeof newProduct.fats === 'string' ? 
+                    parseFloat(newProduct.fats) : 
+                    (newProduct.fats || 0);
+                newProduct.carbs = typeof newProduct.carbs === 'string' ? 
+                    parseFloat(newProduct.carbs) : 
+                    (newProduct.carbs || 0);
+                
+                products.push(newProduct);
+                
+                // Clear form
+                productNameInput.value = '';
+                productPriceInput.value = '';
+                productDescriptionInput.value = '';
+                productKcalInput.value = '';
+                productProteinInput.value = '';
+                productFatsInput.value = '';
+                productCarbsInput.value = '';
+                
+                renderProducts();
+                showMessage(productMessage, 'Product created!', 'success');
+                
+            } catch (error) {
+                showMessage(productMessage, error.message, 'error');
+            }
+        }
+
+        // Update category dropdown
+        function updateCategoryDropdown() {
+            productCategorySelect.innerHTML = '<option value="">-- Select a Category --</option>';
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                productCategorySelect.appendChild(option);
+            });
+        }
+
+        // Render categories list
+        function renderCategories() {
+            categoriesList.innerHTML = categories.length ? 
+                categories.map(c => `<li>${c.name} (ID: ${c.id})</li>`).join('') : 
+                '<li>No categories found</li>';
+        }
+
+        // Render products list
+       function renderProducts() {
+            productsList.innerHTML = products.length ? 
+                products.map(p => {
+                    const price = typeof p.price === 'string' ? parseFloat(p.price) : p.price;
+                    const formattedPrice = !isNaN(price) ? `$${price.toFixed(2)}` : 'Price not set';
+                    
+                    return `
+                        <div class="product-item">
+                            <div class="product-name">${p.name}</div>
+                            <div class="product-price">${formattedPrice}</div>
+                            ${p.description ? `<div class="product-desc">${p.description}</div>` : ''}
+                            
+                            <!-- Поля kcal, protein, fats, carbs отображаются как обычные данные -->
+                            <div class="nutrition-info">
+                                <div class="nutrition-item">
+                                    <div class="nutrition-value">${p.kcal || 0}</div>
+                                    <div class="nutrition-label">kcal</div>
+                                </div>
+                                <div class="nutrition-item">
+                                    <div class="nutrition-value">${p.protein || 0}g</div>
+                                    <div class="nutrition-label">protein</div>
+                                </div>
+                                <div class="nutrition-item">
+                                    <div class="nutrition-value">${p.fats || 0}g</div>
+                                    <div class="nutrition-label">fats</div>
+                                </div>
+                                <div class="nutrition-item">
+                                    <div class="nutrition-value">${p.carbs || 0}g</div>
+                                    <div class="nutrition-label">carbs</div>
+                                </div>
+                            </div>
+                            
+                            <div><small>Category ID: ${p.category}</small></div>
+                        </div>
+                    `;
+                }).join('') : 
+                '<div>No products found</div>';
+        }
+
+        // Show status message
+        function showMessage(element, text, type) {
+            element.textContent = text;
+            element.className = `message ${type}`;
+            element.style.display = 'block';
+            setTimeout(() => element.style.display = 'none', 5000);
+        }
+    </script>
+</body>
+</html>

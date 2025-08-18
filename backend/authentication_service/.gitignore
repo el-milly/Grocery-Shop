@@ -1,5 +1,0 @@
-.vscode
-venv
-db.sqlite3
-pgdata
-.env

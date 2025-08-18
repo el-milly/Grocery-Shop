@@ -19,7 +19,13 @@ class ProductModel(models.Model):
     name = models.CharField(max_length=100)
     category = models.ForeignKey(CategoryModel, on_delete=models.CASCADE)
     slug = models.SlugField(unique=True, blank=True, max_length=100)
-    product_id = models.IntegerField()
+    product_id = models.AutoField(primary_key=True)
+    price = models.FloatField()
+    description = models.CharField(max_length=100)
+    carbs = models.FloatField()
+    fats = models.FloatField()
+    protein = models.FloatField()
+    kcal = models.FloatField()
 
     def save(self, *args, **kwargs):
         if not self.slug:

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Product Page</title>
+    <script>
+        async function loadProduct() {
+            try {
+                // Get slug from the body's data attribute
+                const slug = document.body.dataset.productSlug;
+                if (!slug) throw new Error('Product slug not found');
+                
+                const response = await fetch(`/product/object/${slug}/`);
+                if (!response.ok) throw new Error('Product not found');
+                
+                const product = await response.json();
+                
+                document.getElementById('product-name').textContent = product.name;
+                document.getElementById('product-price').textContent = `$${product.price}`;
+            } catch (error) {
+                console.error('Error loading product:', error);
+                document.getElementById('product-name').textContent = 'Product not found';
+                document.getElementById('product-price').textContent = '';
+            }
+        }
+        
+        window.addEventListener('DOMContentLoaded', loadProduct);
+    </script>
+</head>
+<body data-product-slug="{{ product.slug }}">  <!-- Django will inject this -->
+    <h1 id="product-name">Loading...</h1>
+    <p id="product-price"></p>
+</body>
+</html>

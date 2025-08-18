@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreshMart Online Grocery</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .product-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 1rem;
+            padding: 1rem;
+            width: 200px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .product-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        .product-name {
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        .product-price {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .add-to-cart {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 0.5rem;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+        .cart {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: white;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FreshMart Online Grocery</h1>
+    </header>
+
+    <div class="cart">
+        <h3>Cart</h3>
+        <div id="cart-items"></div>
+        <p>Total: $<span id="cart-total">0.00</span></p>
+    </div>
+
+    <div class="container" id="products-container">
+        <!-- Products will be loaded here dynamically -->
+    </div>
+
+    <script>
+        // This would normally come from your backend API
+
+       // Initialize with empty array
+        let products = [];
+        let cart = [];
+
+        async function fetchProducts() {
+            try {
+                const response = await fetch('/website/products/', {
+                    method: 'GET',  // GET is correct for retrieving products
+                    headers: {
+                        'Content-Type': 'application/json',
+
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error("Fetch error:", error);
+                return [];  // Fallback empty array
+            }
+        }
+        async function loadProducts() {
+            const products = await fetchProducts();
+            renderProducts(products);
+        }
+
+        
+        function renderProducts(products) {
+            const container = document.getElementById('products-container');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (!products || products.length === 0) {
+                container.innerHTML = '<p>No products available</p>';
+                return;
+            }
+            
+            products.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <h3>${product.name}</h3>
+                    <p>Category: ${product.category}</p>
+                    <p>Price: $${product.price}</p>
+                    <button onclick="addToCart(${product.id})">Add to Cart</button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchProducts();
+            loadProducts();
+        });
+    </script>
+</body>
+</html>

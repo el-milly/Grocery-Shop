@@ -161,3 +161,4 @@ staticfiles/rest_framework/js/default.js
 staticfiles/rest_framework/js/jquery-3.7.1.min.js
 staticfiles/rest_framework/js/load-ajax-form.js
 staticfiles/rest_framework/js/prettify-min.js
+__pycache__

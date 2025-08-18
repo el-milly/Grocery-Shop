@@ -1,48 +1,212 @@
-services: 
-      authentication:
-        image: authentication-image
-        container_name: authentication-container
-        build: .
-        ports: 
-            - 8000:8000
-        depends_on:
-            db:
-              condition: 
-                    service_healthy
-        networks:
-           - app-network
+services:
+  product-service:
+    image: product-service
+    restart: on-failure
+    container_name: product-container
+    build: ./product_service
+    depends_on:
+      product-database:
+        condition: service_healthy
+    networks:
+      - app_network
+    volumes:
+      - ./backend/staticfiles/:/backend/staticfiles/
+  
+  authentication-service:
+    image: authentication-image
+    container_name: authentication-container
+    restart: on-failure
+    build: ./authentication_service
+    depends_on:
+      - authentication-database
+    networks:
+      - app_network
+    volumes:
+      - ./backend/staticfiles/:/backend/staticfiles/
+    
+  cart-service:
+    image: cart-image
+    container_name: cart-container
+    restart: on-failure
+    build: ./cart_service
+    depends_on:
+      - cart-database
+    networks:
+      - app_network
+    volumes:
+      - ./backend/staticfiles/:/backend/staticfiles/
 
-      web:
-        image: nginx
-        container_name: nginx-container
-        ports:
-          - "8080:8080"
-        volumes:
-          - ./nginx.conf:/etc/nginx/nginx.conf:ro
-          - ./static/html:/static/html
-        networks:
-          - app-network
+  order_service:
+    image: order-image
+    build: ./order_service
+    container_name: order-container
+    restart: on-failure
+    depends_on:
+      - order-database
+    volumes:
+      - ./backend/staticfiles/:/backend/staticfiles/
+    networks:
+      - app_network
 
-      db:
-        image: postgres
-        container_name: postgresql-container
-        restart: always
-        environment:
-             POSTGRES_PASSWORD: ${database_password}
-             POSTGRES_USER: ${database_user}
-             POSTGRES_DB: ${database_name}
-        healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U ${database_user}"]
-            interval: 1s
-            timeout: 5s
-            retries: 10
-        volumes:
-          - ./pgdata:/var/lib/postgresql/data
-        networks:
-            - app-network
+  website-service:
+    image: website-service
+    container_name: website-container
+    build: ./website_service
+    depends_on:
+      website-database:
+        condition: service_healthy
+    networks:
+      - app_network
+    volumes:
+      - ./debug/staticfiles/:/debug/staticfiles/
 
-# Memcached need to add to service 
+  
+  website-database:
+    image: postgres
+    container_name: website-database
+    environment:
+      POSTGRES_DB: website_db
+      POSTGRES_PASSWORD: root
+      POSTGRES_USER: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+    volumes:
+      - website_pgdata:/var/lib/postgresql/pgdata2
 
+  product-database:
+    image: postgres
+    restart: unless-stopped
+    container_name: product-database
+    environment:
+      POSTGRES_DB: product_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    
+    volumes:
+      - product_pgdata:/var/lib/postgresql/data
+    networks:
+      - app_network
+    
+  authentication-database:
+    image: postgres
+    restart: unless-stopped
+    container_name: authentication-database
+    environment:
+      POSTGRES_DB: authentication_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - authentication_pgdata:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  cart-database:
+    image: postgres
+    restart: unless-stopped
+    container_name: cart-database
+    environment:
+      POSTGRES_DB: cart_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    
+    volumes:
+      - cart_pgdata:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  
+  order-database:
+    image: postgres
+    restart: unless-stopped
+    container_name: order-database
+    environment:
+      POSTGRES_DB: order_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    
+    volumes:
+      - order_pgdata:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./static/html:/backend/static/html
+      - ./backend/staticfiles/:/backend/staticfiles/
+
+    ports:
+      - '8080:8080'
+    networks:
+      - app_network
+    depends_on:
+      - product-service
+      - website-service
+  broker:
+    image: wurstmeister/kafka
+    container_name: broker
+    restart: unless-stopped
+    ports:
+      - '9092:9092'
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: localhost
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+    networks:
+      - app_network
+  
+  zookeeper:
+    image: wurstmeister/zookeeper
+    restart: unless-stopped
+    container_name: zookeeper
+    ports:
+      - '2181:2181'
+    networks:
+      - app_network
+
+  
+    
 networks:
-     app-network:
-        driver: bridge
+  app_network:
+    driver: bridge
+
+volumes:
+  product_pgdata:
+  authentication_pgdata:
+  order_pgdata:
+  cart_pgdata:
+  website_pgdata:

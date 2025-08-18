@@ -36,7 +36,6 @@
     </form>
 
     <script>
-        // Функция для получения CSRF-токена (необходима для Knox)
         function getCSRFToken() {
             return document.cookie.match(/csrftoken=([^;]+)/)?.[1] || "";
         }
@@ -48,7 +47,7 @@
             messageEl.className = "error";
 
             try {
-                const response = await fetch("http://localhost:8000/api/create/", {
+                const response = await fetch("/authentication/create/", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -80,7 +79,6 @@
             }
         });
 
-        // Проверка авторизации при загрузке страницы
         if (localStorage.getItem("knox_token")) {
             document.getElementById("message").textContent = "You are already logged in.";
         }
