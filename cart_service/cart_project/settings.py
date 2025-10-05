@@ -47,8 +47,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'cart_app',
     'rest_framework',
+    'knox',
     'corsheaders',
 ]
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.SessionAuthentication',
+    'knox.auth.TokenAuthentication']
+}
+
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:8000',
