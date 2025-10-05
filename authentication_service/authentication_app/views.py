@@ -39,19 +39,20 @@ class UserLoginView(APIView):
         
         token = AuthToken.objects.create(user=user)[1]
         
-        producer = KafkaProducer(bootstrap_servers='broker:9092',
-                value_serializer=lambda v: json.dumps(v).encode('utf-8'),
-)
-        producer.send(
-            'user_events',
-            key=str(user.id),
-            value=json.dumps({
-                'user_id': str(user.id)
-            })
-        )
-        producer.flush()
-        
-
+        try:
+            producer = KafkaProducer(bootstrap_servers='broker:9092',
+                    value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+                    )
+            producer.send(
+                'user_events',
+                value={
+                    'event_type': 'user_created',
+                    'user_id': user.id
+                }
+            )
+            producer.flush()
+        except Exception as e:
+            print(f'kafka error: {e}')
         
         return Response({"user_data": UserSerializer(user).data, "token": token})
     
