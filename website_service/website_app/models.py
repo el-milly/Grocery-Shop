@@ -5,7 +5,7 @@ import threading
 # Create your models here.
 
 class ProductsModel(models.Model):
-    id = models.AutoField(primary_key=True)
+    product_id = models.CharField(max_length=100, unique=True)
     name = models.CharField(max_length=100)
     category = models.CharField(max_length=100)
     slug = models.SlugField(unique=True, blank=True, max_length=100)
@@ -30,7 +30,9 @@ def kafka_consumer():
             category=message.value['category'], slug=message.value['slug'],
             price=message.value['price'], description=message.value['description'],
             carbs=message.value['carbs'], fats=message.value['fats'],
-            protein=message.value['protein'], kcal=message.value['kcal'])
+            protein=message.value['protein'], kcal=message.value['kcal'],
+            product_id=message.value['product_id'])
+
 
 thread = threading.Thread(target=kafka_consumer, daemon=True)
 thread.start()

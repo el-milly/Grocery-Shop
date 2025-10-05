@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from .models import ProductsModel
+from kafka import KafkaProducer
 class ProductsListSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ['id', 'name', 'slug', 'category', 'price']
+        fields = ['name', 'slug', 'category', 'price']
         model = ProductsModel
 
     def create(self, validated_data):
